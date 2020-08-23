@@ -17,6 +17,7 @@ void setColors(unsigned char colors[]){
   setColors(colors[0], colors[1], colors[2]);
 }
 
+// animation interface
 class Animation {
 public: 
   virtual void start();
