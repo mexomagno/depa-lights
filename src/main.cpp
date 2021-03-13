@@ -87,6 +87,7 @@ public:
   void start() {
     setColors(0, 0, 0);
     on = false;
+    elapsed = 0;
   }
   void step(long dt_us) {
     elapsed += dt_us;
@@ -148,9 +149,9 @@ private:
 Animation* animation;
 Animation* animations[] = {
   new HueRotation(500000),
-  new Strobe(30000),
   new WhiteFade(500000),
-  new ColorArray(100000, true)
+  new Strobe(50000),
+  new ColorArray(500000, false)
 };
 int anim_index = 0;
 long shiftPeriod = 2000000;
@@ -166,13 +167,6 @@ void shiftAnimation(){
   animation->start();
 }
 
-void setup() {
-  for (char i = 0; i < 3; i++){
-    pinMode(PINS[i], OUTPUT);
-  }
-  animation = animations[0];
-  animation->start();
-}
 const int FPS = 60;
 
 long PERIOD_us = (long)(1.0/(double)(FPS) * 1000000);
@@ -187,6 +181,22 @@ void update(long dt){
   analogWrite(PINS[BLUE], COLORS[BLUE]);
 }
 
+void setup() {
+  for (char i = 0; i < 3; i++){
+    pinMode(PINS[i], OUTPUT);
+  }
+  pinMode(A1, INPUT);
+  pinMode(8, INPUT);
+  animation = animations[0];
+  animation->start();
+
+  Serial.begin(9600);
+}
+
+const unsigned long serial_period_us = 100000;
+long st0 = micros();
+long sdt = 0;
+
 void loop() {
   now = micros();
   dt = now - t0;
@@ -199,5 +209,14 @@ void loop() {
   if (adt >= shiftPeriod) {
     shiftAnimation();
     at0 = now + (adt - shiftPeriod);
+  }
+
+  sdt = now - st0;
+  if (sdt >= serial_period_us) {
+    Serial.print("Sensor input: ");
+    Serial.print(analogRead(A1));
+    Serial.print(", ");
+    Serial.println(digitalRead(8));
+    st0 = now + (sdt - serial_period_us);
   }
 }
